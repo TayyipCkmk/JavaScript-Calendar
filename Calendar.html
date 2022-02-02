@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/fontawesome.min.css">
+    <title>Calendar</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Quicksand", sans-serif;
+        }
+        html{
+            font-size: 63%;
+        }
+        .container {
+            width: 100%;
+            height: 100vh;
+            background-color: #bebede;
+            color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .calendar {
+            width: 45rem;
+            height: 52rem;
+            background-color: #222227;
+            box-shadow: 0 0.5rem 3rem rgba(0,0,0,0.4);
+        }
+        .month {
+            width: 100%;
+            height: 12rem;
+            background-color: #4fc1a7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            text-align: center;
+            text-shadow: 0 0.3rem 0.5rem rgba(0,0,0,0.5); 
+        }
+        .month i{
+            font-size: 2.5rem;
+            cursor: pointer;
+        }
+        .month h1 {
+            font-size: 3rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+            margin-bottom: 1rem;
+        }
+        .month p {
+            font-size: 1.6rem;
+        }
+        .weekdays {
+            width: 100%;
+            height: 5rem;
+            padding: 0 0.4rem;
+            display: flex;
+            align-items: center;
+        }
+        .weekdays div {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 0.1rem;
+            width: calc(44.2rem / 7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 0 0.3rem 0.5rem rgba(0,0,0,0.5);
+        }
+        .days {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0.2rem;
+        }
+        .days div {
+            font-size: 1.4rem;
+            margin: 0.3rem;
+            width: calc(40.2rem / 7);
+            height: 5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 0 0.3rem 0.5rem rgba(0,0,0,0.5);
+            transition: background-color 0.2s;
+        }
+        .days div:hover:not(.today) {
+            background-color: #262626;
+            border:0.2rem solid #777;
+            cursor: pointer;
+        }
+        .prev-date,
+        .next-date {
+            opacity: 0.5;
+            
+        }
+        .today{
+            background-color: #4fc1a7;
+        }
+        .modal-backdrop {
+            background-color: #b2ecdf;
+        }
+
+	    .modal {
+	    position: fixed;
+	    top: 0;
+	    display: flex;
+	    width: 100%;
+	    justify-content: center;
+	    align-items: center;
+	    transition: all 0.3s ease;
+
+	    }
+	    .modal--hidden {
+	    display: none;
+	    }
+	    .modal__contents {
+	    background-color: #fff;
+	    padding: 2rem 4rem;
+	    }
+	    .modal__contents input[type=text] {
+	    width: 100%;
+	    padding: 0.5rem;
+	    }
+	    .modal__contents #submit {
+	    width: 100%;
+	    padding: 0.5rem;
+	    background-color: #4fc1a7;
+	    color: #fff;
+	    border: none;
+	    transition: all 0.3s ease;
+	    }
+	    .modal__contents #submit:hover {
+	    background-color: #b2ecdf;
+	    }
+	    .modal__close-bar {
+	    cursor: pointer;
+	    display: flex;
+	    justify-content: flex-end;
+	    margin-right: -2rem;
+	    margin-top: -1rem;
+	   
+	    } 
+	    #delete {
+	    float: right; 
+	    background-color: red;
+	    border-radius: 50%;
+	    border: none;
+	    width: 50px;
+	    height: 20px;
+	    color: white;  
+	    }
+	    #delete:hover {
+	    background-color: #ff5351;
+	    }
+	    #color {
+	    border: none;    
+	    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calendar">
+            <div class="month">
+                <i class="fas fa-angle-left prev"></i>
+                <div class="date">
+                    <h1></h1>
+                    <p></p>
+                </div>
+                <i class="fas fa-angle-right next"></i>
+            </div>
+            <div class="weekdays">
+                <div>Paz</div>
+                <div>Pzt</div>
+                <div>Sal</div>
+                <div>Car</div>
+                <div>Per</div>
+                <div>Cum</div>
+                <div>Cmt </div>
+            </div>
+            <div id="gun" class="days">
+                
+            </div>
+        </div>
+    </div>
+ <div class="modal modal--hidden">
+        <div  class="modal__contents">
+            <div class="modal__close-bar">
+                <span>X</span>
+            </div>
+            <p>Please enter your event</p>
+            <form id="check">
+                <input id="input" type="text" placeholder="Event...">
+                <button id="submit">Save</button>
+                <input type="color" id="color">
+            </form>
+                <button onclick="deleteEvent()" id="delete">Delete</button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var date = new Date();
+
+        var eColor = "";
+
+        var isToday = new Date();
+
+        var events =  JSON.parse(localStorage.getItem("events"))  || [];
+
+        var eEvent = ""
+
+        var denemeDate;
+
+        var dayFilter;
+
+        var eventDate = new Date(date);
+
+        var saveEvent;
+
+        var item;
+
+        var x;
+
+        var colorInput;
+       
+        var sDay;
+
+        var renderCalendar = () => {
+
+       
+         	var firstDayIndex = new Date(date.getFullYear(), date.getMonth(), 1);
+         	
+         		firstDayIndex = firstDayIndex.getDay();
+        	
+        	var lastDayIndex = new Date(date.getFullYear(), date.getMonth() + 1,0).getDay();
+
+        	var nextDays= 7 - lastDayIndex -1;
+        
+        	var monthDays = document.querySelector(".days")
+        
+        	var lastDay = new Date(date.getFullYear(), date.getMonth() + 1,0).getDate();
+        
+        	var prevLastDay = new Date(date.getFullYear(), date.getMonth(),0).getDate();
+
+        	var storedItem = localStorage.getItem("storedItem");
+        
+       	 	var months = [
+            	"Ocak",
+            	"Şubat",
+            	"Mart",
+            	"Nisan",
+            	"Mayıs",
+            	"Haziran",
+	            "Temmuz",
+	            "Ağustos",
+	            "Eylül",
+	            "Ekim",
+	            "Kasım",
+	            "Aralık"
+        	];
+	        document.querySelector(".date h1").innerHTML = months[date.getMonth()];
+	        
+	        document.querySelector(".date p").innerHTML = date.toDateString();
+
+	        var days = "";
+
+	        for (var y = firstDayIndex; y > 0; y--) {
+	            days += `<div class="prev-date">${prevLastDay - y + 1}</div>`;
+	        }
+	        for (var i = 1; i <= lastDay; i++) {
+	             var deneme = new Date(date)
+	             var x = deneme.setDate(i)
+	             denemeDate = new Date(date.getFullYear(), date.getMonth(),i).toDateString()
+	             dayFilter = events.filter((data)=> data.eventDate ==denemeDate );
+	           
+	            if (i === new Date().getDate() && date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear()) {
+	               if (dayFilter.length) {
+	                    dayFilter = events.filter((data)=> data.eventDate ==denemeDate );
+	                    days += `<div onClick="toggleEvent(` +x+ `)" style="background-color: ${dayFilter[0].color}" >${i}</div>`;
+
+	               }else days += `<div onClick="toggleEvent(` +x+ `)" class="today">${i}</div>`;
+
+	            }else{
+	            
+	               if(dayFilter.length) {
+	                    days += `<div onClick="toggleEvent(` +x+ `)" style="background-color: ${dayFilter[0].color}" >${i}</div>`;
+	                
+	                }else days += `<div onClick="toggleEvent(` +x+ `)">${i}</div>`;              
+	           	    }               
+		        }
+		        for (let j = 1; j <= nextDays; j++) {
+		            days += `<div class="next-date">${j}</div>`;
+		            monthDays.innerHTML = days;
+
+			    }
+		    }   
+		    var toggleEvent = (param) => {
+		        
+		        document.getElementById("input").value = ""
+		        new Date(param)
+		        saveEvent = new Date(param).toDateString();
+		        eEvent = event.target;
+
+		        if(events){            
+		            events.forEach(function(item){
+		            if(item.eventDate === saveEvent){
+		                document.getElementById("input").value = item.name
+		                document.getElementById("color").value = item.color
+		            }
+		        })    
+		    }
+		         
+		        toggleModal()
+		     }
+		    var toggleModal = () => {
+		        document.querySelector(".modal")
+		        .classList.toggle("modal--hidden");
+		
+		    };
+	                 document.querySelector("#check")
+	                    .addEventListener("submit", (addEvent) => {
+	                    	addEvent.preventDefault();
+
+	                        item = document.getElementById("input").value;
+	                         if (item == false) {
+	                            alert("You must write something!");
+	                       	  }else{
+	                            eColor = document.querySelector('#color').value;
+	                            eEvent.style.backgroundColor = eColor;
+	                          x = {name: item, eventDate: saveEvent, color: eColor }
+
+	                          function searchDay(search) {
+	                            return search.eventDate === saveEvent;
+	                          }
+	                          sDay = events.find(searchDay);
+
+	                          if (sDay == undefined) {
+
+	                            events.push(x);
+	                            localStorage.setItem("events", JSON.stringify(events));
+	                          }else {
+	                            events.forEach(function(row,index){ 
+	                                if(row.eventDate === saveEvent){ 
+	                                    events[index].name = item
+	                                    events[index].color = eColor
+	                                } 
+	                          })
+	                          
+	                            localStorage.setItem("events", JSON.stringify(events));
+	                            event.target.classList.add("modal-backdrop")                           
+	                          }
+	                        }
+	                        toggleModal()       
+	                    });
+
+	                document.querySelector(".modal__close-bar span")
+	                    .addEventListener("click", toggleModal);
+	                  
+	        var deleteEvent = () => {
+	          	if (document.getElementById("input").value == "" ) {
+	          		toggleModal();
+	          	}else{
+				    eEvent.style.backgroundColor = "rgba(34,34,39)";
+		            document.getElementById('#delete');
+		            localStorage.getItem(events);
+		            
+		            var b = events.findIndex(item => item.eventDate === saveEvent)	
+						events.splice(b,1)   
+		            	localStorage.setItem("events", JSON.stringify(events));
+		            toggleModal();
+
+	          	}
+	           
+	        }          
+
+	       document.querySelector(".prev").addEventListener("click",() => {
+	            date.setMonth(date.getMonth() - 1);
+	            if (date.getMonth() == isToday.getMonth() && date.getFullYear() == isToday.getFullYear()){
+	                date.setDate(isToday.getDate())
+	            }else{
+	                date.setDate(1);
+	            }           
+	            renderCalendar();
+	       });
+	       document.querySelector(".next").addEventListener("click",() => {
+	            date.setMonth(date.getMonth() + 1);
+	            if (date.getMonth() == isToday.getMonth() && date.getFullYear() == isToday.getFullYear()){
+	                date.setDate(isToday.getDate())
+	            }else{
+	                date.setDate(1);
+	            }
+	            renderCalendar();
+	    });
+       	renderCalendar();
+
+    </script>
+</body>
+</html>
